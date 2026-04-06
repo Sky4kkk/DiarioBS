@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Diário BS</title>
+    <style>
+        :root { 
+            --primary: #8a4fff; --bg: #0f0f13; --card: #1c1c24; 
+            --text: #ffffff; --gold: #f1c40f; --silver: #bdc3c7; --bronze: #cd7f32;
+        }
+
+        body { 
+            background: var(--bg); color: var(--text); 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            display: flex; flex-direction: column; align-items: center; 
+            padding: 20px; margin: 0;
+        }
+
+        .container { width: 100%; max-width: 400px; }
+
+        /* Status Online */
+        .online-tag { text-align: right; color: #2ecc71; font-size: 12px; margin-bottom: 10px; font-weight: bold; }
+
+        /* Cabeçalho */
+        .header h1 { color: #ff8c00; text-align: center; margin: 0; font-size: 28px; letter-spacing: 1px; }
+        .header p { text-align: center; font-size: 11px; color: #888; margin-bottom: 25px; text-transform: uppercase; }
+
+        /* Grid de Status (Vagas) */
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+        .stat-box { background: var(--card); padding: 12px; border-radius: 12px; text-align: center; border: 1px solid #333; }
+        .stat-box small { font-size: 10px; color: #aaa; display: block; margin-bottom: 5px; }
+        .stat-box div { font-size: 20px; font-weight: bold; }
+
+        /* Barra de Progresso */
+        .prog-bg { background: #333; border-radius: 10px; height: 10px; margin-bottom: 25px; overflow: hidden; }
+        .prog-bar { background: var(--primary); height: 100%; width: 0%; transition: 0.8s ease-in-out; }
+
+        /* Alerta de Vagas Esgotadas */
+        .alert-closed { 
+            background: rgba(255, 68, 68, 0.1); border: 1px solid #ff4444; 
+            padding: 15px; border-radius: 12px; display: none; align-items: center; gap: 10px; margin-bottom: 20px;
+        }
+
+        /* Card de Inscrição */
+        .form-card { background: var(--card); padding: 25px; border-radius: 15px; border: 1px solid #333; box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .form-card h3 { margin-top: 0; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+        label { font-size: 11px; color: #aaa; font-weight: bold; }
+        input { width: 100%; padding: 14px; margin: 8px 0 18px; background: #2c2c36; border: 1px solid #444; border-radius: 8px; color: white; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 16px; background: var(--primary); border: none; border-radius: 10px; color: white; font-weight: bold; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #7139e2; }
+        button:disabled { background: #444; cursor: not-allowed; }
+
+        /* Seção de Ranking */
+        .rank-title { margin: 30px 0 15px; font-weight: bold; display: flex; align-items: center; gap: 10px; font-size: 16px; }
+        .rank-item { 
+            background: var(--card); padding: 15px; border-radius: 12px; 
+            display: flex; justify-content: space-between; align-items: center; 
+            margin-bottom: 10px; border: 1px solid #333;
+        }
+        .rank-1 { border-color: var(--gold); background: rgba(241, 196, 15, 0.05); }
+        .rank-2 { border-color: var(--silver); }
+        .rank-3 { border-color: var(--bronze); }
+        
+        .player-info { display: flex; align-items: center; gap: 12px; }
+        .pos { font-weight: bold; font-size: 18px; width: 30px; }
+        .rank-1 .pos { color: var(--gold); }
+        .name { font-size: 15px; font-weight: 500; }
+        
+        .partidas { background: rgba(255,255,255,0.05); padding: 5px 12px; border-radius: 20px; font-size: 12px; color: #bbb; display: flex; align-items: center; gap: 5px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="online-tag">● Online</div>
+        
+        <div class="header">
+            <h1>🏆 DIÁRIO BS</h1>
+            <p>INSCRIÇÃO PARA CAMPEONATO • PIX • MANUAL</p>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-box"><small>VAGAS</small><div>10</div></div>
+            <div class="stat-box"><small>INSCRITOS</small><div id="n-insc">0</div></div>
+            <div class="stat-box"><small>RESTANTES</small><div id="n-rest">10</div></div>
+        </div>
+
+        <div class="prog-bg"><div id="bar" class="prog-bar"></div></div>
+
+        <div id="alert-lock" class="alert-closed">
+            <span>🔒</span>
+            <p style="margin:0; font-size:13px; font-weight: bold;">O diário está fechado. Inscrições não abertas no momento.</p>
+        </div>
+
+        <div id="form-area" class="form-card">
+            <h3>➔ Entrar</h3>
+            <p style="font-size: 12px; color: #888; margin-bottom: 20px;">Use seu nome e celular para se inscrever.</p>
+            
+            <label>SEU NOME COMPLETO</label>
+            <input type="text" id="nome" placeholder="Ex: João Silva">
+            
+            <label>SEU CELULAR (SÓ NÚMEROS)</label>
+            <input type="tel" id="cel" placeholder="Ex: 11999998888">
+            
+            <button id="btn-enviar" onclick="enviar()">➔ Entrar</button>
+        </div>
+
+        <div class="rank-title">🏅 Ranking — Jogadores mais ativos</div>
+        <div id="ranking-list">Carregando ranking...</div>
+    </div>
+
+    <script>
+        const URL_API = "https://script.google.com/macros/s/AKfycbydeEhKoEX4wSZaApkPgrEnuzrg2Hj3aC_CWP8Y4pG1i0vhB2d05njNFN5CUm7D_JPO/exec";
+
+        async function carregarDados() {
+            try {
+                const res = await fetch(URL_API);
+                const dados = await res.json();
+                const total = dados.length;
+
+                // Atualiza contadores e barra
+                document.getElementById('n-insc').innerText = total;
+                document.getElementById('n-rest').innerText = Math.max(0, 10 - total);
+                document.getElementById('bar').style.width = (Math.min(total, 10) * 10) + "%";
+
+                // Bloqueia se atingir 10
+                if(total >= 10) {
+                    document.getElementById('form-area').style.display = 'none';
+                    document.getElementById('alert-lock').style.display = 'flex';
+                }
+
+                // Ordenar ranking por partidas (Coluna C - index 2)
+                dados.sort((a, b) => (b[2] || 0) - (a[2] || 0));
+
+                const listHTML = dados.map((user, i) => {
+                    const pos = i + 1;
+                    let classeRank = '';
+                    if(pos === 1) classeRank = 'rank-1';
+                    else if(pos === 2) classeRank = 'rank-2';
+                    else if(pos === 3) classeRank = 'rank-3';
+
+                    return `
+                        <div class="rank-item ${classeRank}">
+                            <div class="player-info">
+                                <span class="pos">${pos}º</span>
+                                <span class="name">${user[0]}</span>
+                            </div>
+                            <span class="partidas">🎮 <b>${user[2] || 0}</b></span>
+                        </div>
+                    `;
+                }).join('');
+
+                document.getElementById('ranking-list').innerHTML = listHTML || "<p style='text-align:center; color:#555;'>Nenhum jogador inscrito.</p>";
+
+            } catch (e) {
+                document.getElementById('ranking-list').innerHTML = "<p style='color:red;'>Erro ao carregar dados.</p>";
+            }
+        }
+
+        async function enviar() {
+            const nome = document.getElementById('nome').value.trim();
+            const celular = document.getElementById('cel').value.trim();
+            
+            if(!nome || !celular) {
+                return alert("Por favor, preencha todos os campos!");
+            }
+
+            const btn = document.getElementById('btn-enviar');
+            btn.innerText = "Processando...";
+            btn.disabled = true;
+
+            try {
+                await fetch(URL_API, {
+                    method: 'POST',
+                    body: JSON.stringify({ nome: nome, celular: celular })
+                });
+
+                alert("Inscrição realizada com sucesso!");
+                location.reload();
+            } catch (e) {
+                alert("Erro ao enviar. Tente novamente.");
+                btn.innerText = "➔ Entrar";
+                btn.disabled = false;
+            }
+        }
+
+        // Inicia o carregamento
+        carregarDados();
+    </script>
+</body>
+</html>
